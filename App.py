@@ -7,14 +7,14 @@ from streamlit_drawable_canvas import st_canvas
 # Configuración de la página (debe ser el primer comando de Streamlit)
 st.set_page_config(page_title='Reconocimiento de Dígitos escritos a mano', layout='wide')
 
-# Carga del modelo con nuevo decorador de caché de recursos
+# Carga del modelo con st.cache_resource
+@st.cache_resource
 def load_model():
     return tf.keras.models.load_model("model/handwritten.h5")
 
-model = st.cache_resource(load_model)
+model = load_model()
 
 # Función para predecir un dígito
-
 def predictDigit(image):
     # Convierte la imagen a escala de grises y redimensiona
     image = ImageOps.grayscale(image)
@@ -26,7 +26,7 @@ def predictDigit(image):
 
 # Título y subtítulo de la app
 st.title('Reconocimiento de Dígitos escritos a mano')
-st.subheader("Dibuja dos dígitos en los paneles y presiona 'Predecir'")
+st.subheader("Dibuja dos dígitos en los paneles y presiona 'Predecir' if you dare")
 
 # Parámetros de dibujo
 stroke_width = st.slider('Selecciona el ancho de línea', 1, 30, 15)
@@ -35,7 +35,6 @@ bg_color = '#000000'      # Color de fondo (negro)
 
 # Disposición de canvases y símbolo +
 col1, col2, col3 = st.columns([1, 0.2, 1])
-
 with col1:
     canvas1 = st_canvas(
         fill_color="rgba(255, 165, 0, 0.3)",
@@ -46,10 +45,8 @@ with col1:
         width=200,
         key="canvas1"
     )
-
 with col2:
     st.markdown("<h1 style='text-align: center; margin-top: 60px;'>+</h1>", unsafe_allow_html=True)
-
 with col3:
     canvas2 = st_canvas(
         fill_color="rgba(255, 165, 0, 0.3)",
