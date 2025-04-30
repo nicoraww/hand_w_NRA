@@ -6,6 +6,20 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
+# Datos curiosos de cada dígito
+DIGIT_FACTS = {
+    0: "Cero es el único número que NO tiene valor posicional.",
+    1: "Uno es el número multiplicativo neutro y símbolo de unidad.",
+    2: "Dos es el primer número primo y el único par primo.",
+    3: "Tres es un número triangular y comúnmente asociado a la tríada.",
+    4: "Son 4 estaciones en el año, las vacas tienen 4 patas, 4 es número de la suerte en Japón.",
+    5: "Cinco sentidos tenemos los humanos y 5 dedos en cada mano.",
+    6: "Seis caras tiene un cubo y 6 cuerdas una guitarra estándar.",
+    7: "Siete días tiene la semana y siete maravillas del mundo clásico.",
+    8: "Ocho es el número atemporal infinito en posición horizontal.",
+    9: "Nueve planetas hubo en el sistema solar antes de la redefinición en 2006."
+}
+
 # App
 def predictDigit(image):
     model = tf.keras.models.load_model("model/handwritten.h5")
@@ -19,6 +33,19 @@ def predictDigit(image):
     pred= model.predict(img)
     result = np.argmax(pred[0])
     return result
+
+# Asumiendo que `res` es el resultado de predictDigit(...)
+# y que tienes definido el diccionario DIGIT_FACTS:
+
+# Mostrar el dígito detectado
+st.header(f'El dígito es: {result}')
+
+# Obtener el dato curioso correspondiente
+fact = DIGIT_FACTS.get(result, 'No hay dato curioso para este dígito.')
+
+# Mostrar el dato curioso
+st.info(fact)
+
 
 # Streamlit 
 st.set_page_config(page_title='Reconocimiento de Dígitos escritos a mano', layout='wide')
