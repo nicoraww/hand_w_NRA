@@ -4,7 +4,6 @@ from PIL import Image, ImageOps
 import numpy as np
 from streamlit_drawable_canvas import st_canvas
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 # Función de predicción de dígitos
 def predict_digit(img: Image.Image):
@@ -17,7 +16,7 @@ def predict_digit(img: Image.Image):
     pred = model.predict(arr)
     return int(np.argmax(pred[0]))
 
-# Funciones para mensajes de cada dígito
+# Mensajes para cada dígito
 DIGIT_FACTS = {
     0: "Cero es el único número que NO tiene valor posicional.",
     1: "Uno es el número multiplicativo neutro y símbolo de unidad.",
@@ -31,27 +30,25 @@ DIGIT_FACTS = {
     9: "Nueve planetas hubo en el sistema solar antes de la redefinición en 2006."
 }
 
-# Configuración de la página
+# Configuración de página
 st.set_page_config(page_title='Reconocimiento de Dígitos', layout='wide')
 
-# Inicializar estado
+# Inicializar canvas_key para limpiar canvas
 def init_state():
-    if 'digits' not in st.session_state:
-        st.session_state.digits = []
     if 'canvas_key' not in st.session_state:
         st.session_state.canvas_key = 0
 init_state()
 
-# Título
+# Título y subtítulo
 st.title('✍️ Reconocimiento de Dígitos Escritos a Mano')
-st.subheader('Dibuja un dígito, presiona Predecir y continúa')
+st.subheader('Dibuja un dígito y presiona Predecir')
 
-# Controles de canvas
+# Opciones de canvas
 st.sidebar.title('Opciones')
 st.sidebar.markdown('Ancho de línea')
 stroke_width = st.sidebar.slider('', 1, 30, 15)
 
-# Crear canvas
+# Crear canvas con key dinámico
 canvas_result = st_canvas(
     stroke_width=stroke_width,
     stroke_color='#FFFFFF',
@@ -62,28 +59,19 @@ canvas_result = st_canvas(
     key=f'canvas_{st.session_state.canvas_key}'
 )
 
-# Botón de predecir
+# Botón de predecir y mostrar dato curioso
 if st.button('🔍 Predecir'):
     img_data = canvas_result.image_data
     if img_data is None:
         st.warning('Por favor dibuja un dígito antes de predecir')
     else:
-        arr = (img_data[:, :, 0:3] * 255).astype('uint8')
+        arr = (img_data[:, :, :3] * 255).astype('uint8')
         img = Image.fromarray(arr)
         digit = predict_digit(img)
-        st.session_state.digits.append(digit)
-        # Mostrar mensaje relevante para el dígito
         fact = DIGIT_FACTS.get(digit, '')
         st.info(f'**Dígito {digit}:** {fact}')
-        # Incrementar canvas_key para limpio
+        # Limpiar canvas para siguiente dígito
         st.session_state.canvas_key += 1
-
-# Mostrar historial y suma
-if st.session_state.digits:
-    st.subheader('Historial de dígitos ingresados')
-    st.write(st.session_state.digits)
-    total = sum(st.session_state.digits)
-    st.subheader(f'🔢 Suma acumulada: {total}')
 
 # Sidebar info
 st.sidebar.title('Acerca de')
