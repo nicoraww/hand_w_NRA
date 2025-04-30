@@ -58,7 +58,8 @@ stroke_width = st.slider('Selecciona el ancho de línea', 1, 30, 15)
 stroke_color = '#FFFFFF'
 bg_color = '#000000'
 
-# Canvas\ ncanvas_result = st_canvas(
+# Canvas
+canvas_result = st_canvas(
     stroke_width=stroke_width,
     stroke_color=stroke_color,
     background_color=bg_color,
@@ -68,7 +69,7 @@ bg_color = '#000000'
     key='canvas'
 )
 
-# Botón de predicción e historias
+# Botón de predicción e historias e historias
 if st.button('🔍 Predecir'):
     if canvas_result and canvas_result.image_data is not None:
         array_data = (canvas_result.image_data[:, :, :3] * 255).astype('uint8')
