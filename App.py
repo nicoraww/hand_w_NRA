@@ -9,8 +9,7 @@ import tensorflow as tf
 def predict_digit(img: Image.Image):
     model = tf.keras.models.load_model('model/handwritten.h5')
     gray = img.convert('L')
-    inverted = ImageOps.invert(gray)
-    resized = inverted.resize((28, 28))
+    resized = gray.resize((28, 28))
     arr = np.array(resized, dtype='float32') / 255.0
     arr = arr.reshape((1, 28, 28, 1))
     pred = model.predict(arr)
