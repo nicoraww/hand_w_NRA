@@ -4,12 +4,16 @@ import numpy as np
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-# Función para predecir un dígito
-@st.cache(allow_output_mutation=True)
+# Configuración de la página (debe ser el primer comando de Streamlit)
+st.set_page_config(page_title='Reconocimiento de Dígitos escritos a mano', layout='wide')
+
+# Carga del modelo con nuevo decorador de caché de recursos
 def load_model():
     return tf.keras.models.load_model("model/handwritten.h5")
 
-model = load_model()
+model = st.cache_resource(load_model)
+
+# Función para predecir un dígito
 
 def predictDigit(image):
     # Convierte la imagen a escala de grises y redimensiona
@@ -20,8 +24,7 @@ def predictDigit(image):
     pred = model.predict(img)
     return int(np.argmax(pred[0]))
 
-# Configuración de la página
-st.set_page_config(page_title='Reconocimiento de Dígitos escritos a mano', layout='wide')
+# Título y subtítulo de la app
 st.title('Reconocimiento de Dígitos escritos a mano')
 st.subheader("Dibuja dos dígitos en los paneles y presiona 'Predecir'")
 
