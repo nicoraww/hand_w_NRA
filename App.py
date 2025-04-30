@@ -1,82 +1,65 @@
-import os
-import streamlit as st
-import base64
+import tensorflow as tf
 from PIL import Image, ImageOps
 import numpy as np
-from streamlit_drawable_canvas import st_canvas
-import tensorflow as tf
+import pandas as pd
 import matplotlib.pyplot as plt
+import streamlit as st
+from streamlit_drawable_canvas import st_canvas
 
-# Función de predicción de dígitos
-def predict_digit(img: Image.Image):
-    # Cargar modelo solo una vez
-    model = tf.keras.models.load_model('model/handwritten.h5')
-    # Convertir a escala de grises
-    gray = img.convert('L')
-    # Invertir para que fondo sea blanco y trazo negro
-    inverted = ImageOps.invert(gray)
-    # Redimensionar a 28x28
-    resized = inverted.resize((28, 28))
-    # Normalizar
-    arr = np.array(resized, dtype='float32') / 255.0
-    arr = arr.reshape((1, 28, 28, 1))
-    # Predecir\ n    pred = model.predict(arr)
-    return int(np.argmax(pred[0]))
+# App
+def predictDigit(image):
+    model = tf.keras.models.load_model("model/handwritten.h5")
+    image = ImageOps.grayscale(image)
+    img = image.resize((28,28))
+    img = np.array(img, dtype='float32')
+    img = img/255
+    plt.imshow(img)
+    plt.show()
+    img = img.reshape((1,28,28,1))
+    pred= model.predict(img)
+    result = np.argmax(pred[0])
+    return result
 
-# Configuración de la página\ nst.set_page_config(page_title='Reconocimiento de Dígitos', layout='wide')
+# Streamlit 
+st.set_page_config(page_title='Reconocimiento de Dígitos escritos a mano', layout='wide')
+st.title('Reconocimiento de Dígitos escritos a mano')
+st.subheader("Dibuja el digito en el panel  y presiona  'Predecir'")
 
-# Inicializar estado
-def init_state():
-    if 'digits' not in st.session_state:
-        st.session_state.digits = []
-    if 'canvas_key' not in st.session_state:
-        st.session_state.canvas_key = 0
-init_state()
+# Add canvas component
+# Specify canvas parameters in application
+drawing_mode = "freedraw"
+stroke_width = st.slider('Selecciona el ancho de línea', 1, 30, 15)
+stroke_color = '#FFFFFF' # Set background color to white
+bg_color = '#000000'
 
-# Título
-st.title('✍️ Reconocimiento de Dígitos Escritos a Mano')
-st.subheader('Dibuja un dígito, presiona Predecir y continúa')
-
-# Controles de canvas
-st.sidebar.title('Opciones')
-st.sidebar.markdown('Ancho de línea')
-stroke_width = st.sidebar.slider('', 1, 30, 15)
-
-# Crear canvas con key dinámico para limpiar tras predecir
+# Create a canvas component
 canvas_result = st_canvas(
+    fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
     stroke_width=stroke_width,
-    stroke_color='#FFFFFF',
-    background_color='#000000',
+    stroke_color=stroke_color,
+    background_color=bg_color,
     height=200,
     width=200,
-    drawing_mode='freedraw',
-    key=f'canvas_{st.session_state.canvas_key}'
+    key="canvas",
 )
 
-# Botón de predecir
-if st.button('🔍 Predecir'):
-    img_data = canvas_result.image_data
-    if img_data is None:
-        st.warning('Por favor dibuja un dígito antes de predecir')
+# Add "Predict Now" button
+if st.button('Predecir'):
+    if canvas_result.image_data is not None:
+        input_numpy_array = np.array(canvas_result.image_data)
+        input_image = Image.fromarray(input_numpy_array.astype('uint8'),'RGBA')
+        input_image.save('prediction/img.png')
+        img = Image.open("prediction/img.png")
+        res = predictDigit(img)
+        st.header('El Digito es : ' + str(res))
     else:
-        # Convertir array de canvas a imagen PIL
-        arr = (img_data[:, :, 0:3] * 255).astype('uint8')
-        img = Image.fromarray(arr)
-        # Predecir con corrección de inversión
-        digit = predict_digit(img)
-        # Guardar dígito
-        st.session_state.digits.append(digit)
-        # Incrementar canvas_key para refrescar canvas
-        st.session_state.canvas_key += 1
+        st.header('Por favor dibuja en el canvas el digito.')
 
-# Mostrar resultados acumulados
-if st.session_state.digits:
-    st.subheader('Historial de dígitos')
-    st.write(st.session_state.digits)
-    total = sum(st.session_state.digits)
-    st.subheader(f'🔢 Suma acumulada: {total}')
-
-# Sidebar info
-st.sidebar.title('Acerca de')
-st.sidebar.write('App basada en TensorFlow y Streamlit Canvas')
-st.sidebar.write('Modelo de ejemplo: handwritten.h5')
+# Add sidebar
+st.sidebar.title("Acerca de:")
+st.sidebar.text("En esta aplicación se evalua ")
+st.sidebar.text("la capacidad de un RNA de reconocer") 
+st.sidebar.text("digitos escritos a mano.")
+st.sidebar.text("Basado en desarrollo de Vinay Uniyal")
+#st.sidebar.text("GitHub Repository")
+#st.sidebar.write("[GitHub Repo Link](https://github.com/Vinay2022/Handwritten-Digit-Recognition)")
