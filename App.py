@@ -49,22 +49,19 @@ canvas_result = st_canvas(
 )
 
 # Botón de predecir
-def on_predict():
+if st.button('🔍 Predecir'):
     img_data = canvas_result.image_data
     if img_data is None:
         st.warning('Por favor dibuja un dígito antes de predecir')
-        return
-    # Convertir y predecir
-    arr = (img_data * 255).astype('uint8')
-    img = Image.fromarray(arr).convert('RGB')
-    digit = predict_digit(img)
-    # Guardar dígito y actualizar key para limpiar canvas
-    st.session_state.digits.append(digit)
-    st.session_state.canvas_key += 1
-    st.experimental_rerun()
-
-if st.button('🔍 Predecir'):
-    on_predict()
+    else:
+        arr = (img_data * 255).astype('uint8')
+        img = Image.fromarray(arr).convert('RGB')
+        digit = predict_digit(img)
+        st.session_state.digits.append(digit)
+        # Increment canvas_key to reset
+        st.session_state.canvas_key += 1
+        # After button press, rerun to refresh canvas
+        st.experimental_rerun()
 
 # Mostrar resultados acumulados
 if st.session_state.digits:
@@ -77,3 +74,4 @@ if st.session_state.digits:
 st.sidebar.title('Acerca de')
 st.sidebar.write('App basada en TensorFlow y Streamlit Canvas')
 st.sidebar.write('Modelo de ejemplo: handwritten.h5')
+
