@@ -1,76 +1,65 @@
 import tensorflow as tf
 from PIL import Image, ImageOps
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-# Función de predicción de dígitos
+# App
 def predictDigit(image):
-    # Cargar el modelo entrenado
     model = tf.keras.models.load_model("model/handwritten.h5")
-    # Convertir a escala de grises
-    gray = ImageOps.grayscale(image)
-    # Redimensionar a 28x28 píxeles
-    img = gray.resize((28, 28))
-    # Normalizar valores a [0,1]
-    arr = np.array(img, dtype='float32') / 255.0
-    # Dar forma para el modelo: (1,28,28,1)
-    arr = arr.reshape((1, 28, 28, 1))
-    # Obtener predicción
-    pred = model.predict(arr)
-    # Devolver la clase con mayor probabilidad
-    return int(np.argmax(pred[0]))
+    image = ImageOps.grayscale(image)
+    img = image.resize((28,28))
+    img = np.array(img, dtype='float32')
+    img = img/255
+    plt.imshow(img)
+    plt.show()
+    img = img.reshape((1,28,28,1))
+    pred= model.predict(img)
+    result = np.argmax(pred[0])
+    return result
 
-# Datos curiosos para cada dígito
-DIGIT_FACTS = {
-    0: "Cero es el único número que NO tiene valor posicional.",
-    1: "Uno es el número multiplicativo neutro y símbolo de unidad.",
-    2: "Dos es el primer número primo y el único par primo.",
-    3: "Tres es un número triangular y comúnmente asociado a la tríada.",
-    4: "Son 4 estaciones en el año, las vacas tienen 4 patas, 4 es número de la suerte en Japón.",
-    5: "Cinco sentidos tenemos los humanos y 5 dedos en cada mano.",
-    6: "Seis caras tiene un cubo y 6 cuerdas una guitarra estándar.",
-    7: "Siete días tiene la semana y siete maravillas del mundo clásico.",
-    8: "Ocho es el número atemporal infinito en posición horizontal.",
-    9: "Nueve planetas hubo en el sistema solar antes de la redefinición en 2006."
-}
-
-# Configuración de Streamlit
+# Streamlit 
 st.set_page_config(page_title='Reconocimiento de Dígitos escritos a mano', layout='wide')
 st.title('Reconocimiento de Dígitos escritos a mano')
-st.subheader("Dibuja el dígito en el panel y presiona 'Predecir'")
+st.subheader("Dibuja el digito en el panel  y presiona  'Predecir'")
 
-# Slider para el ancho de línea
-drawing_mode = 'freedraw'
+# Add canvas component
+# Specify canvas parameters in application
+drawing_mode = "freedraw"
 stroke_width = st.slider('Selecciona el ancho de línea', 1, 30, 15)
+stroke_color = '#FFFFFF' # Set background color to white
+bg_color = '#000000'
 
-# Componente Canvas para dibujar\ ncanvas_result = st_canvas(
+# Create a canvas component
+canvas_result = st_canvas(
+    fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
     stroke_width=stroke_width,
-    stroke_color='#FFFFFF',
-    background_color='#000000',
+    stroke_color=stroke_color,
+    background_color=bg_color,
     height=200,
     width=200,
-    drawing_mode=drawing_mode,
-    key='canvas'
+    key="canvas",
 )
 
-# Botón de predicción
-if st.button('🔍 Predecir'):
+# Add "Predict Now" button
+if st.button('Predecir'):
     if canvas_result.image_data is not None:
-        # Convertir a imagen PIL
-        array_data = (canvas_result.image_data[:, :, :3] * 255).astype('uint8')
-        input_image = Image.fromarray(array_data)
-        # Predecir dígito
-digit = predictDigit(input_image)
-        # Mostrar resultado\ n        st.header(f'El dígito es: {digit}')
-        # Mostrar dato curioso
-fact = DIGIT_FACTS.get(digit, 'No hay dato curioso para este dígito.')
-        st.info(fact)
+        input_numpy_array = np.array(canvas_result.image_data)
+        input_image = Image.fromarray(input_numpy_array.astype('uint8'),'RGBA')
+        input_image.save('prediction/img.png')
+        img = Image.open("prediction/img.png")
+        res = predictDigit(img)
+        st.header('El Digito es : ' + str(res))
     else:
-        st.warning('Por favor dibuja un dígito antes de predecir.')
+        st.header('Por favor dibuja en el canvas el digito.')
 
-# Sidebar informativo
-st.sidebar.title('Acerca de')
-st.sidebar.write('Esta aplicación evalúa la capacidad de un modelo')
-st.sidebar.write('para reconocer dígitos escritos a mano.')
-st.sidebar.write('Basado en el desarrollo de Vinay Uniyal.')
+# Add sidebar
+st.sidebar.title("Acerca de:")
+st.sidebar.text("En esta aplicación se evalua ")
+st.sidebar.text("la capacidad de un RNA de reconocer") 
+st.sidebar.text("digitos escritos a mano.")
+st.sidebar.text("Basado en desarrollo de Vinay Uniyal")
+#st.sidebar.text("GitHub Repository")
+#st.sidebar.write("[GitHub Repo Link](https://github.com/Vinay2022/Handwritten-Digit-Recognition)")
