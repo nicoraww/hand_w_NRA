@@ -9,16 +9,21 @@ import matplotlib.pyplot as plt
 
 # Función de predicción de dígitos
 def predict_digit(img: Image.Image):
+    # Cargar modelo solo una vez
     model = tf.keras.models.load_model('model/handwritten.h5')
-    gray = ImageOps.grayscale(img)
-    resized = gray.resize((28, 28))
+    # Convertir a escala de grises
+    gray = img.convert('L')
+    # Invertir para que fondo sea blanco y trazo negro
+    inverted = ImageOps.invert(gray)
+    # Redimensionar a 28x28
+    resized = inverted.resize((28, 28))
+    # Normalizar
     arr = np.array(resized, dtype='float32') / 255.0
     arr = arr.reshape((1, 28, 28, 1))
-    pred = model.predict(arr)
+    # Predecir\ n    pred = model.predict(arr)
     return int(np.argmax(pred[0]))
 
-# Configuración de la página
-st.set_page_config(page_title='Reconocimiento de Dígitos', layout='wide')
+# Configuración de la página\ nst.set_page_config(page_title='Reconocimiento de Dígitos', layout='wide')
 
 # Inicializar estado
 def init_state():
@@ -54,11 +59,14 @@ if st.button('🔍 Predecir'):
     if img_data is None:
         st.warning('Por favor dibuja un dígito antes de predecir')
     else:
-        arr = (img_data * 255).astype('uint8')
-        img = Image.fromarray(arr).convert('RGB')
+        # Convertir array de canvas a imagen PIL
+        arr = (img_data[:, :, 0:3] * 255).astype('uint8')
+        img = Image.fromarray(arr)
+        # Predecir con corrección de inversión
         digit = predict_digit(img)
+        # Guardar dígito
         st.session_state.digits.append(digit)
-        # Increment canvas_key to reset for next draw
+        # Incrementar canvas_key para refrescar canvas
         st.session_state.canvas_key += 1
 
 # Mostrar resultados acumulados
