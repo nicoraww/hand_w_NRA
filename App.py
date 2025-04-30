@@ -55,7 +55,7 @@ canvas_result = st_canvas(
 )
 
 # Botón de predicción
-i f st.button('🔍 Predecir'):
+if st.button('🔍 Predecir'):
     if canvas_result.image_data is not None:
         # Convierte datos del canvas a imagen PIL
         array_data = (canvas_result.image_data[:, :, :3] * 255).astype('uint8')
