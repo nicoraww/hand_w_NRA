@@ -6,16 +6,20 @@ from streamlit_drawable_canvas import st_canvas
 
 # Función de predicción de dígitos
 def predictDigit(image):
+    # Cargar el modelo entrenado
     model = tf.keras.models.load_model("model/handwritten.h5")
     # Convertir a escala de grises
-gray = ImageOps.grayscale(image)
-    # Redimensionar a 28x28
-img = gray.resize((28, 28))
-    # Normalizar\arr = np.array(img, dtype='float32') / 255.0
-arr = arr.reshape((1, 28, 28, 1))
-    # Predecir
-pred = model.predict(arr)
-return int(np.argmax(pred[0]))
+    gray = ImageOps.grayscale(image)
+    # Redimensionar a 28x28 píxeles
+    img = gray.resize((28, 28))
+    # Normalizar valores a [0,1]
+    arr = np.array(img, dtype='float32') / 255.0
+    # Dar forma para el modelo: (1,28,28,1)
+    arr = arr.reshape((1, 28, 28, 1))
+    # Obtener predicción
+    pred = model.predict(arr)
+    # Devolver la clase con mayor probabilidad
+    return int(np.argmax(pred[0]))
 
 # Datos curiosos para cada dígito
 DIGIT_FACTS = {
@@ -37,31 +41,30 @@ st.title('Reconocimiento de Dígitos escritos a mano')
 st.subheader("Dibuja el dígito en el panel y presiona 'Predecir'")
 
 # Slider para el ancho de línea
+drawing_mode = 'freedraw'
 stroke_width = st.slider('Selecciona el ancho de línea', 1, 30, 15)
 
-# Canvas para dibujo
-canvas_result = st_canvas(
-    fill_color="rgba(255, 165, 0, 0.3)",  # Color de fondo del trazo
+# Componente Canvas para dibujar\ ncanvas_result = st_canvas(
     stroke_width=stroke_width,
-    stroke_color='#FFFFFF',  # Color del trazo
-    background_color='#000000',  # Color de fondo del canvas
+    stroke_color='#FFFFFF',
+    background_color='#000000',
     height=200,
     width=200,
-    drawing_mode='freedraw',
+    drawing_mode=drawing_mode,
     key='canvas'
 )
 
 # Botón de predicción
-if st.button('Predecir'):
+if st.button('🔍 Predecir'):
     if canvas_result.image_data is not None:
-        # Convertir datos a imagen PIL
+        # Convertir a imagen PIL
         array_data = (canvas_result.image_data[:, :, :3] * 255).astype('uint8')
         input_image = Image.fromarray(array_data)
         # Predecir dígito
-        digit = predictDigit(input_image)
-        # Mostrar resultado y dato curioso
-        st.header(f'El dígito es: {digit}')
-        fact = DIGIT_FACTS.get(digit, 'No hay dato curioso para este dígito.')
+digit = predictDigit(input_image)
+        # Mostrar resultado\ n        st.header(f'El dígito es: {digit}')
+        # Mostrar dato curioso
+fact = DIGIT_FACTS.get(digit, 'No hay dato curioso para este dígito.')
         st.info(fact)
     else:
         st.warning('Por favor dibuja un dígito antes de predecir.')
