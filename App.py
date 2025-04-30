@@ -58,10 +58,8 @@ if st.button('🔍 Predecir'):
         img = Image.fromarray(arr).convert('RGB')
         digit = predict_digit(img)
         st.session_state.digits.append(digit)
-        # Increment canvas_key to reset
+        # Increment canvas_key to reset for next draw
         st.session_state.canvas_key += 1
-        # After button press, rerun to refresh canvas
-        st.experimental_rerun()
 
 # Mostrar resultados acumulados
 if st.session_state.digits:
@@ -74,4 +72,3 @@ if st.session_state.digits:
 st.sidebar.title('Acerca de')
 st.sidebar.write('App basada en TensorFlow y Streamlit Canvas')
 st.sidebar.write('Modelo de ejemplo: handwritten.h5')
-
